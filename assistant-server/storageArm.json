@@ -1,0 +1,37 @@
+[
+    {
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2019-04-01",
+       
+        "name":  "[concat(variables('storageName'),'storage')]",
+        "location": "[parameters('location')]",
+        "sku": {
+            "name": "Standard_LRS",
+            "tier": "Standard"
+        },
+        "kind": "StorageV2",
+        "identity": {
+            "type": "SystemAssigned"
+        },
+        "properties": {
+            "accessTier": "Cool",
+            "allowBlobPublicAccess": true,
+            "supportsHttpsTrafficOnly": true
+        },
+        "resources": [
+            {
+                "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+                "apiVersion": "2021-06-01",
+                "name": "[concat(variables('storageName'),'storage/default/',variables('storageName'))]",
+                "dependsOn": [
+                    "[concat(variables('storageName'),'storage')]"
+                ],
+                "properties": {
+                    "accessTier": "TransactionOptimized",
+                    "enabledProtocols": "SMB",
+                    "shareQuota": "[variables('size')]"
+                }
+            }
+        ]
+    }
+]

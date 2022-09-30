@@ -1,0 +1,134 @@
+[
+        {
+            "apiVersion": "2017-08-01",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "Default-nsg",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "rule1",
+                        "properties": {
+                            "protocol": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "destinationPortRange": "22",
+                            "sourcePortRange": "*",
+                            "priority": 300,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "apiVersion": "2016-08-01",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "Default-vnet",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "addressPrefix": "10.0.0.0/24"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "apiVersion": "2020-07-01",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(variables('vmName'),'_ip')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 10,
+                "publicIPAddressVersion": "IPv4"
+            },
+            "sku": {
+                "name": "Basic",
+                "tier": "Regional"
+            },
+            "dependsOn": []
+        },
+        {
+            "apiVersion": "2020-07-01",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('vmName'),'_netInterface')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "enableAcceleratedNetworking": false,
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[concat('/subscriptions/',variables('subId'),'/resourceGroups/',resourceGroup().name,'/providers/Microsoft.Network/publicIPAddresses/',variables('vmName'),'_ip')]"
+                            },
+                            "subnet": {
+                                "id": "[concat('/subscriptions/',variables('subId'),'/resourceGroups/',resourceGroup().name,'/providers/Microsoft.Network/virtualNetworks/Default-vnet/subnets/default')]"
+                            }
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[concat('/subscriptions/',variables('subId'),'/resourceGroups/',resourceGroup().name,'/providers/Microsoft.Network/networkSecurityGroups/Default-nsg')]"
+                }
+            },
+            "dependsOn": ["[concat(variables('vmName'),'_ip')]","Default-vnet"]
+        },
+        {
+            "apiVersion": "2021-03-01",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[variables('vmName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('vmType')]"
+                    },
+                    "storageProfile": {
+                    "imageReference": {
+                        "sku": "16.04-LTS",
+                        "publisher": "Canonical",
+                        "version": "latest",
+                        "offer": "[variables('image')]"
+                    },
+                    "osDisk": {
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                        "storageAccountType": "Standard_LRS"
+                        },
+                        "name": "[concat('Disk_',variables('vmName'))]",
+                        "createOption": "FromImage"
+                    }
+                    },
+                    "osProfile": {
+                    "adminUsername": "[variables('username')]",
+                    "computerName": "[variables('vmName')]",
+                    "adminPassword": "[variables('password')]",
+                    "customData": "[variables('command')]"
+                    },
+                    "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[concat('/subscriptions/',variables('subId'),'/resourceGroups/',resourceGroup().name,'/providers/Microsoft.Network/networkInterfaces/',variables('vmName'),'_netInterface')]",
+                            "properties": {
+                                "primary": true
+                            }
+                        }
+                    ]
+                    }
+            },
+            "dependsOn": ["[concat(variables('vmName'),'_ip')]","[concat(variables('vmName'),'_netInterface')]"]
+        }
+    ]

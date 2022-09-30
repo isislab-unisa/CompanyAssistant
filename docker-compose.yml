@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+    client:
+        build: ./assistant-client
+        container_name: client
+        ports:
+          - 3000:3000
+    server:
+      build: ./assistant-server
+      container_name: server
+      links:
+        - mongodb_container
+      ports:
+        - 80:80
+      depends_on:
+        - mongodb_container
+        - rabbitmq
+    rabbitmq:
+      image: rabbitmq:3-management
+      environment:
+        RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER}"
+        RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD}"
+      container_name: rabbitmq
+      ports:
+        - 8080:15672
+        - 5672:5672
+    mongodb_container:
+      image: mongo:latest
+      container_name: mongodb_container
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: ${DB_USR}
+        MONGO_INITDB_ROOT_PASSWORD: ${DB_PWS}
+        MONGO_INITDB_DATABASE: ${DB_NAME}
+      ports:
+        - 27017:27017
+      volumes:
+        - appData:/data/db
+        - ./assistant-server/mongodb/db_init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+volumes:
+  appData:

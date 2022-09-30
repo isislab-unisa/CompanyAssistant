@@ -1,0 +1,7 @@
+#navBarCustom{
+    margin: 0.8em;
+    background-color: transparent !important;
+    border-bottom: 1px solid;
+    border-color: #777777;
+    padding-bottom: 1em;
+}

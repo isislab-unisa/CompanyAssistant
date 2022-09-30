@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+  mongodb:
+    image : mongo
+    container_name: mongodb
+    environment:
+     - MONGO_INITDB_ROOT_USERNAME:admin
+     - MONGO_INITDB_ROOT_PASSWORD:admin
+     - MONGO_INITDB_DATABASE:programmers
+    volumes:
+     - ./mongo.init:/docker-entrypoint-initdb.d/mongo-init.js
+     - ./database:/data/db
+    ports:
+     - 27017:27017
+    restart: unless-stopped
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    environment:
+     - ME_CONFIG_MONGODB_SERVER=mongodb
+     - ME_CONFIG_MONGODB_ADMINUSERNAME= admin 
+     - ME_CONFIG_MONGODB_ADMINPASSWORD= admin
+    depends_on:
+     - mongodb
+    links: 
+     - mongodb
+    ports:
+     - "8081:8081"
+
+
+     
+     version: "3.8"
+services:
+  db:
+    image: mongo
+    container_name: mongodb
+    environment:
+     - MONGO_INITDB_DATABASE=assistant
+     - MONGO_INITDB_ROOT_USERNAME=admin
+     - MONGO_INITDB_ROOT_PASSWORD=admin
+    volumes:
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js
+      - ./database:/data/db

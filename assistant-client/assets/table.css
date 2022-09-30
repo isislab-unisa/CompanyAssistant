@@ -1,0 +1,13 @@
+tr:hover{
+    background-color:rgb(241, 241, 241);
+}
+.bigCard, table, tr{
+    min-width: "100%" !important; 
+    max-width:  "100%" !important;
+    width:  "100%" !important;
+}
+
+
+td:hover{
+cursor: pointer;
+}
